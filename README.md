@@ -1,2 +1,2 @@
 # bggn213_github
-Repo for the classwork from BGGN213
+My classwork from BGGN213 at UCSD.
