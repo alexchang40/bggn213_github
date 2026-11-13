@@ -1,0 +1,180 @@
+---
+title: "Class 05: Data Viz with ggplot"
+author: "Alex Chang"
+format: pdf
+toc: true
+---
+
+## Background
+
+Today we are going to learn all about the **ggplot2** pakcage in R.
+
+There are tones of graphics packages in R (like the `plot()` function we used last day) and add on packages like **ggplot2**.
+
+### Comparing base graphics with ggplot2
+
+We can use the in-build data frame `cars` to play with plotting:
+```{r}
+head(cars)
+```
+
+
+```{r}
+plot(cars)
+```
+
+Now with ggplot:
+First install with `install.packages()'
+
+> I do not want to run `install.packages("ggplot")` in my quarto document as it is re-installed every time the report is rendered
+
+Every time I want to use functions from given packages, I need to load the package with a `library()` call:
+```{r}
+library(ggplot2)
+ggplot(cars)
+```
+Every ggplot needs at least 3 things:
+
+- the **data** (data.frame we want to plot from)
+- the **aesthetics** (how the columns of the data map to the plot)
+- the **geom** (how you want the plot drawn, points, lines, etc.)
+
+```{r}
+ggplot(data = cars) +
+	aes(x = speed, y = dist) + 
+	geom_point() +
+  geom_smooth(method="lm") +
+  theme_bw() +
+  labs(x = "Speed (MPH)",
+       y="Stopping Distance(Ft)",
+       title="Stopping Distances")
+```
+
+## Gene Expression Plot
+
+Read the data from online:
+```{r}
+url <- "https://bioboot.github.io/bimm143_S20/class-material/up_down_expression.txt"
+genes <- read.delim(url)
+head(genes)
+```
+
+plot:
+
+```{r}
+p <- ggplot(genes) +
+  aes(x=Condition1, y=Condition2, col = State) +
+  geom_point() +
+  scale_color_manual(values = c("blue", "grey", "red")) + 
+  labs(x = "Control",
+       y="Treatment",
+       title="Gene Expression Changes Upon Drug Treatment",
+       subtitle = "GLP-1 inhibitors from Novo") +
+  theme_bw()
+p
+```
+
+We can install extra packages with `install.packages()` like theme packages (for fun) or actually useful ones like **patchwork** for combining plots
+
+```{r}
+library(patchwork)
+
+# Setup some example plots 
+p1 <- ggplot(mtcars) + geom_point(aes(mpg, disp))
+p2 <- ggplot(mtcars) + geom_boxplot(aes(gear, disp, group = gear))
+p3 <- ggplot(mtcars) + geom_smooth(aes(disp, qsec))
+p4 <- ggplot(mtcars) + geom_bar(aes(carb))
+
+# Use patchwork to combine them here:
+(p1 | p2 | p3) /
+      p4
+```
+
+```{r}
+p1/p2/(p3|p4)
+```
+
+```{r}
+p +
+  facet_wrap(~State)
+```
+
+
+>Q. How many genes are in this dataset?
+
+```{r}
+nrow(genes)
+```
+
+>Q. How many are "up" regulated
+
+```{r}
+table(genes$State)
+```
+
+```{r}
+sum(genes$State == "up")
+```
+
+>Q. What percentage of genes are "down" regulated?
+
+```{r}
+total_genes <- nrow(genes)
+total_down <- sum(genes$State == "down")
+ans <- round(total_down/total_genes * 100, digits = 2)
+ans
+```
+
+The percentage of down-regulated genes is `r ans`%.
+
+## GapMinder data
+
+Famous gapminder dataset
+```{r}
+# File location online
+url <- "https://raw.githubusercontent.com/jennybc/gapminder/master/inst/extdata/gapminder.tsv"
+
+gapminder <- read.delim(url)
+```
+
+> Q. How many data entries are there in this dataset?
+
+```{r}
+nrow(gapminder)
+```
+
+> Q. How many countries are in this dataset?
+
+```{r}
+length(unique(gapminder$country))
+head(gapminder)
+```
+
+## Plotting GDP vs Life Expectancy 
+
+```{r}
+continent_plot <- ggplot(gapminder) +
+  aes(x=gdpPercap, y=lifeExp, color = continent) +
+  geom_point(alpha = 0.2)
+continent_plot
+```
+
+```{r}
+continent_plot + facet_wrap(~continent)
+```
+
+Histograms of gapminder:
+```{r}
+ggplot(gapminder) +
+  aes(lifeExp, fill = continent)+
+  geom_histogram() +
+  facet_wrap(~continent)
+```
+
+and a boxplot:
+
+```{r}
+ggplot(gapminder) +
+  aes(lifeExp, y = continent, fill = continent)+
+  geom_boxplot()
+```
